@@ -224,14 +224,9 @@ function gerarRelatorio() {
 function copiarRelatorio() {
     const texto = document.getElementById('relatorioTexto').textContent;
     if (texto) {
-        navigator.clipboard.writeText(texto).then(() => {
-            alert('Relatório copiado para a área de transferência!');
-        }).catch(err => {
+        navigator.clipboard.writeText(texto).catch(err => {
             console.error('Erro ao copiar:', err);
-            alert('Falha ao copiar o relatório.');
         });
-    } else {
-        alert('Nenhum relatório para copiar.');
     }
 }
 
