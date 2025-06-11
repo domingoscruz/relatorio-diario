@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório Diário</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Relatório Diário</h1>
+        <div class="inputs">
+            <div class="input-group">
+                <label for="agenteInput">Agente:</label>
+                <input type="text" id="agenteInput" value="Domingos">
+            </div>
+            <div class="input-group">
+                <label for="liderInput">Líder:</label>
+                <input type="text" id="liderInput" value="Diego Muniz">
+            </div>
+        </div>
+        <div id="contadores"></div>
+        <div class="botoes">
+            <button id="gerarRelatorioParcial">Gerar Relatório Parcial</button>
+            <button id="gerarRelatorio">Gerar Relatório</button>
+            <button id="resetarContagem">Resetar Contagem</button>
+        </div>
+        <div id="relatorio" class="relatorio">
+            <pre id="relatorioTexto"></pre>
+            <button id="copiarRelatorio">Copiar Relatório</button>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

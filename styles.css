@@ -1,0 +1,163 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    text-align: center;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    max-width: 500px;
+}
+
+h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+h2 {
+    font-size: 20px;
+    margin: 15px 0 10px;
+    color: #333;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+}
+
+th, td {
+    padding: 8px;
+    text-align: center;
+    font-size: 16px;
+}
+
+th {
+    background-color: #e9ecef;
+}
+
+td {
+    border-bottom: 1px solid #dee2e6;
+}
+
+button {
+    padding: 12px 24px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+button.remover {
+    padding: 4px 8px;
+    font-size: 12px;
+    background-color: #dc3545;
+}
+
+button.remover:hover {
+    background-color: #c82333;
+}
+
+.categoria-mae {
+    margin: 15px 0;
+}
+
+#gerarRelatorio {
+    background-color: #28a745;
+}
+
+#gerarRelatorio:hover {
+    background-color: #218838;
+}
+
+#gerarRelatorioParcial {
+    background-color: #17a2b8;
+}
+
+#gerarRelatorioParcial:hover {
+    background-color: #138496;
+}
+
+#resetarContagem {
+    background-color: #dc3545;
+}
+
+#resetarContagem:hover {
+    background-color: #c82333;
+}
+
+#copiarRelatorio {
+    background-color: #6c757d;
+    margin-top: 10px;
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
+#copiarRelatorio:hover {
+    background-color: #5a6268;
+}
+
+.botoes {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.relatorio {
+    margin-top: 15px;
+    text-align: left;
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+    min-height: 200px;
+}
+
+pre {
+    margin: 0;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    white-space: pre-wrap;
+    color: #333;
+}
+
+.inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+label {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+input[type="text"] {
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 200px;
+}
