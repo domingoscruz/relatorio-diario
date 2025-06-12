@@ -79,7 +79,7 @@ function carregarInputs() {
     document.getElementById('liderInput').value = lider;
 }
 
-// Incrementar contador
+// Incrementar contador (+1)
 function incrementar(subcategoria) {
     const data = new Date().toISOString().split('T')[0];
     const contadores = inicializarDia();
@@ -101,21 +101,33 @@ function decrementar(subcategoria) {
     }
 }
 
-// Resetar contagem
+// Resetar contagem com dupla confirmação
+let resetTimeout = null;
 function resetarContagem() {
-    const data = new Date().toISOString().split('T')[0];
-    const contadores = {};
+    const botaoReset = document.getElementById('resetarContagem');
     
-    Object.keys(CATEGORIAS).forEach(categoriaMae => {
-        CATEGORIAS[categoriaMae].forEach(subcategoria => {
-            contadores[subcategoria] = 0;
+    if (botaoReset.textContent === 'Confirmar?') {
+        const data = new Date().toISOString().split('T')[0];
+        const contadores = {};
+        
+        Object.keys(CATEGORIAS).forEach(categoriaMae => {
+            CATEGORIAS[categoriaMae].forEach(subcategoria => {
+                contadores[subcategoria] = 0;
+            });
         });
-    });
-    
-    localStorage.setItem(data, JSON.stringify(contadores));
-    localStorage.removeItem('relatorioTexto'); // Limpar relatório salvo
-    atualizarInterface();
-    document.getElementById('relatorioTexto').textContent = '';
+        
+        localStorage.setItem(data, JSON.stringify(contadores));
+        localStorage.removeItem('relatorioTexto');
+        atualizarInterface();
+        document.getElementById('relatorioTexto').textContent = '';
+        botaoReset.textContent = 'Resetar Contagem';
+        clearTimeout(resetTimeout);
+    } else {
+        botaoReset.textContent = 'Confirmar?';
+        resetTimeout = setTimeout(() => {
+            botaoReset.textContent = 'Resetar Contagem';
+        }, 5000); // 5 segundos para confirmar
+    }
 }
 
 // Atualizar interface
