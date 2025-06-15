@@ -250,10 +250,10 @@ function gerarRelatorioParcial() {
     const autodeclarado = contadores["Auto"] || 0;
     const conexaoCalcada = contadores["Calçada"] || 0;
     
-    let textoContent = `*PARCIAL DIÁRIA*\n\n`;
-    textoContent += `*IMÓVEIS VISITADOS:* ${totalGeral}\n\n`;
-    textoContent += `*AUTODECLARADO:* ${autodeclarado}\n\n`;
-    textoContent += `*CONEXÃO CALÇADA:* ${conexaoCalcada}\n`;
+    let textoContent = `PARCIAL DIÁRIA\n\n`;
+    textoContent += `IMÓVEIS VISITADOS: ${totalGeral}\n\n`;
+    textoContent += `AUTODECLARADO: ${autodeclarado}\n\n`;
+    textoContent += `CONEXÃO CALÇADA: ${conexaoCalcada}\n`;
     
     document.getElementById('relatorioTexto').textContent = textoContent;
     if (isLocalStorageAvailable()) {
@@ -268,9 +268,9 @@ function gerarRelatorio() {
     const agente = document.getElementById('agenteInput').value;
     const lider = document.getElementById('liderInput').value;
     
-    let textoContent = `*AGENTE:* ${agente}\n`;
-    textoContent += `*DATA:* ${data}\n`;
-    textoContent += `*LÍDER:* ${lider}\n\n`;
+    let textoContent = `AGENTE: ${agente}\n`;
+    textoContent += `DATA: ${data}\n`;
+    textoContent += `LÍDER: ${lider}\n\n`;
     
     let totalGeral = 0;
     Object.keys(CATEGORIAS).forEach(categoriaMae => {
@@ -279,7 +279,7 @@ function gerarRelatorio() {
         });
     });
     
-    textoContent += `*IMÓVEIS VISITADOS:* ${totalGeral}\n`;
+    textoContent += `IMÓVEIS VISITADOS: ${totalGeral}\n`;
     
     Object.keys(CATEGORIAS).forEach(categoriaMae => {
         const nomeRelatorio = NOMES_RELATORIO[categoriaMae] || categoriaMae;
@@ -288,12 +288,12 @@ function gerarRelatorio() {
             totalMae += contadores[subcategoria] || 0;
         });
         
-        textoContent += `*${nomeRelatorio}:* ${totalMae}\n`;
+        textoContent += `${nomeRelatorio}: ${totalMae}\n`;
         
         CATEGORIAS[categoriaMae].forEach(subcategoria => {
             const contador = contadores[subcategoria] || 0;
             const nomeSubcategoria = NOMES_SUBCATEGORIAS_RELATORIO[subcategoria] || subcategoria;
-            textoContent += `*-${nomeSubcategoria}:* ${contador}\n`;
+            textoContent += `-${nomeSubcategoria}: ${contador}\n`;
         });
         
         textoContent += `\n`;
