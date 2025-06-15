@@ -46,10 +46,27 @@ const getDataAtual = () => {
     return `${dia}/${mes}/${ano}`;
 };
 
+// Verificar se localStorage está disponível
+function isLocalStorageAvailable() {
+    try {
+        const test = '__test__';
+        localStorage.setItem(test, test);
+        localStorage.removeItem(test);
+        return true;
+    } catch (e) {
+        console.warn('localStorage não disponível:', e);
+        return false;
+    }
+}
+
 // Inicializar contadores do dia atual
 function inicializarDia() {
     const data = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD para localStorage
-    let contadores = JSON.parse(localStorage.getItem(data)) || {};
+    let contadores = {};
+    
+    if (isLocalStorageAvailable()) {
+        contadores = JSON.parse(localStorage.getItem(data)) || {};
+    }
     
     Object.keys(CATEGORIAS).forEach(categoriaMae => {
         CATEGORIAS[categoriaMae].forEach(subcategoria => {
@@ -59,7 +76,9 @@ function inicializarDia() {
         });
     });
     
-    localStorage.setItem(data, JSON.stringify(contadores));
+    if (isLocalStorageAvailable()) {
+        localStorage.setItem(data, JSON.stringify(contadores));
+    }
     return contadores;
 }
 
@@ -67,14 +86,20 @@ function inicializarDia() {
 function salvarInputs() {
     const agente = document.getElementById('agenteInput').value;
     const lider = document.getElementById('liderInput').value;
-    localStorage.setItem('agente', agente);
-    localStorage.setItem('lider', lider);
+    if (isLocalStorageAvailable()) {
+        localStorage.setItem('agente', agente);
+        localStorage.setItem('lider', lider);
+    }
 }
 
 // Carregar inputs do localStorage
 function carregarInputs() {
-    const agente = localStorage.getItem('agente') || 'Domingos';
-    const lider = localStorage.getItem('lider') || 'Diego Muniz';
+    let agente = 'Domingos';
+    let lider = 'Diego Muniz';
+    if (isLocalStorageAvailable()) {
+        agente = localStorage.getItem('agente') || agente;
+        lider = localStorage.getItem('lider') || lider;
+    }
     document.getElementById('agenteInput').value = agente;
     document.getElementById('liderInput').value = lider;
 }
@@ -85,7 +110,9 @@ function incrementar(subcategoria) {
     const contadores = inicializarDia();
     
     contadores[subcategoria]++;
-    localStorage.setItem(data, JSON.stringify(contadores));
+    if (isLocalStorageAvailable()) {
+        localStorage.setItem(data, JSON.stringify(contadores));
+    }
     atualizarInterface();
 }
 
@@ -96,9 +123,48 @@ function decrementar(subcategoria) {
     
     if (contadores[subcategoria] > 0) {
         contadores[subcategoria]--;
-        localStorage.setItem(data, JSON.stringify(contadores));
+        if (isLocalStorageAvailable()) {
+            localStorage.setItem(data, JSON.stringify(contadores));
+        }
         atualizarInterface();
     }
+}
+
+// Editar contador manualmente
+function editarContador(subcategoria, elemento, valorAtual) {
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.className = 'contagem-input';
+    input.value = valorAtual;
+    input.min = '0';
+    
+    // Salvar ao pressionar Enter ou sair do campo
+    const salvar = () => {
+        let novoValor = parseInt(input.value, 10);
+        if (isNaN(novoValor) || novoValor < 0) {
+            novoValor = valorAtual; // Restaurar valor original se inválido
+        }
+        const data = new Date().toISOString().split('T')[0];
+        const contadores = inicializarDia();
+        contadores[subcategoria] = novoValor;
+        if (isLocalStorageAvailable()) {
+            localStorage.setItem(data, JSON.stringify(contadores));
+        }
+        atualizarInterface();
+    };
+    
+    input.addEventListener('blur', salvar);
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            salvar();
+        } else if (e.key === 'Escape') {
+            atualizarInterface(); // Restaurar valor original
+        }
+    });
+    
+    elemento.innerHTML = '';
+    elemento.appendChild(input);
+    input.focus();
 }
 
 // Resetar contagem com dupla confirmação
@@ -116,8 +182,10 @@ function resetarContagem() {
             });
         });
         
-        localStorage.setItem(data, JSON.stringify(contadores));
-        localStorage.removeItem('relatorioTexto');
+        if (isLocalStorageAvailable()) {
+            localStorage.setItem(data, JSON.stringify(contadores));
+            localStorage.removeItem('relatorioTexto');
+        }
         atualizarInterface();
         document.getElementById('relatorioTexto').textContent = '';
         botaoReset.textContent = 'Resetar Contagem';
@@ -133,7 +201,7 @@ function resetarContagem() {
 // Atualizar interface
 function atualizarInterface() {
     const data = new Date().toISOString().split('T')[0];
-    const contadores = JSON.parse(localStorage.getItem(data)) || inicializarDia();
+    const contadores = inicializarDia();
     
     const contadoresDiv = document.getElementById('contadores');
     contadoresDiv.innerHTML = '';
@@ -154,9 +222,10 @@ function atualizarInterface() {
         
         CATEGORIAS[categoriaMae].forEach(subcategoria => {
             const row = document.createElement('tr');
+            const valor = contadores[subcategoria] || 0;
             row.innerHTML = `
                 <td><button class="remover" onclick="decrementar('${subcategoria}')">-</button></td>
-                <td><p>${contadores[subcategoria] || 0}</p></td>
+                <td><p class="contagem-clicavel" onclick="editarContador('${subcategoria}', this, ${valor})">${valor}</p></td>
                 <td><button onclick="incrementar('${subcategoria}')">${subcategoria}</button></td>
             `;
             table.appendChild(row);
@@ -169,7 +238,7 @@ function atualizarInterface() {
 
 // Gerar relatório parcial
 function gerarRelatorioParcial() {
-    const contadores = JSON.parse(localStorage.getItem(new Date().toISOString().split('T')[0])) || inicializarDia();
+    const contadores = inicializarDia();
     
     let totalGeral = 0;
     Object.keys(CATEGORIAS).forEach(categoriaMae => {
@@ -187,13 +256,15 @@ function gerarRelatorioParcial() {
     textoContent += `*CONEXÃO CALÇADA:* ${conexaoCalcada}\n`;
     
     document.getElementById('relatorioTexto').textContent = textoContent;
-    localStorage.setItem('relatorioTexto', textoContent); // Salvar relatório
+    if (isLocalStorageAvailable()) {
+        localStorage.setItem('relatorioTexto', textoContent); // Salvar relatório
+    }
 }
 
 // Gerar relatório final
 function gerarRelatorio() {
     const data = getDataAtual();
-    const contadores = JSON.parse(localStorage.getItem(new Date().toISOString().split('T')[0])) || inicializarDia();
+    const contadores = inicializarDia();
     const agente = document.getElementById('agenteInput').value;
     const lider = document.getElementById('liderInput').value;
     
@@ -229,7 +300,9 @@ function gerarRelatorio() {
     });
     
     document.getElementById('relatorioTexto').textContent = textoContent;
-    localStorage.setItem('relatorioTexto', textoContent); // Salvar relatório
+    if (isLocalStorageAvailable()) {
+        localStorage.setItem('relatorioTexto', textoContent); // Salvar relatório
+    }
 }
 
 // Copiar relatório para a área de transferência
@@ -249,9 +322,11 @@ document.addEventListener('DOMContentLoaded', () => {
     atualizarInterface();
     
     // Restaurar relatório salvo
-    const relatorioSalvo = localStorage.getItem('relatorioTexto');
-    if (relatorioSalvo) {
-        document.getElementById('relatorioTexto').textContent = relatorioSalvo;
+    if (isLocalStorageAvailable()) {
+        const relatorioSalvo = localStorage.getItem('relatorioTexto');
+        if (relatorioSalvo) {
+            document.getElementById('relatorioTexto').textContent = relatorioSalvo;
+        }
     }
     
     document.getElementById('gerarRelatorio').addEventListener('click', gerarRelatorio);

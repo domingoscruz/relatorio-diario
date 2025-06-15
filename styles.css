@@ -161,3 +161,24 @@ input[type="text"] {
     border-radius: 5px;
     width: 200px;
 }
+
+.contagem-clicavel {
+    cursor: pointer;
+    color: #333;
+    padding: 4px;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+.contagem-clicavel:hover {
+    background-color: #e9ecef;
+}
+
+.contagem-input {
+    width: 50px;
+    padding: 2px;
+    font-size: 14px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
