@@ -6,6 +6,7 @@ const CATEGORIAS = {
         "Recusou assinar auto",
         "065",
         "Calçada",
+        "Intradomiciliar",
         "Potencial",
         "Auto"
     ],
@@ -29,6 +30,7 @@ const NOMES_SUBCATEGORIAS_RELATORIO = {
     "Recusou assinar auto": "CLIENTE CONSCIENTIZADO RECUSOU ASSINAR AUTODECLARADO",
     "065": "SOLICITAÇÃO DA 65",
     "Calçada": "CONEXÃO CALÇADA",
+    "Intradomiciliar": "INTRADOMICILIAR",
     "Potencial": "REDE POTENCIAL",
     "Auto": "AUTODECLARADO",
     "FDA": "FECHADO/DESOCUPADO/ABANDONADO",
@@ -249,11 +251,13 @@ function gerarRelatorioParcial() {
     
     const autodeclarado = contadores["Auto"] || 0;
     const conexaoCalcada = contadores["Calçada"] || 0;
+    const intradomiciliar = contadores["Intradomiciliar"] || 0;
     
     let textoContent = `PARCIAL DIÁRIA\n\n`;
     textoContent += `IMÓVEIS VISITADOS: ${totalGeral}\n\n`;
     textoContent += `AUTODECLARADO: ${autodeclarado}\n\n`;
-    textoContent += `CONEXÃO CALÇADA: ${conexaoCalcada}\n`;
+    textoContent += `CONEXÃO CALÇADA: ${conexaoCalcada}\n\n`;
+    textoContent += `INTRADOMICILIAR: ${intradomiciliar}\n`;
     
     document.getElementById('relatorioTexto').textContent = textoContent;
     if (isLocalStorageAvailable()) {
