@@ -101,7 +101,7 @@
         /* Cores dos Botões */
         #gerarRelatorio { background-color: #28a745; }
         #gerarRelatorioParcial { background-color: #17a2b8; }
-        #gerarResumoSemanal { background-color: #6610f2; } /* Roxo para destacar */
+        #gerarResumoSemanal { background-color: #6610f2; }
         #resetarContagem { background-color: #dc3545; }
         #copiarRelatorio { background-color: #6c757d; margin-top: 10px; }
         #btnWhatsapp { background-color: #25D366; margin-top: 10px; }
@@ -113,7 +113,6 @@
             margin: 15px 0;
         }
         
-        /* Botões que ocupam linha inteira */
         #gerarResumoSemanal, #resetarContagem {
             grid-column: span 2;
         }
@@ -240,7 +239,6 @@
     </div>
 
     <script>
-        // --- CONFIGURAÇÕES ---
         const CATEGORIAS = {
             "Procedentes": ["Adesão", "Não aderiu", "Recusou assinar auto", "065", "Calçada", "Intradomiciliar", "Potencial", "Auto"],
             "Improcedentes": ["FDA", "Cadastro", "Fechado Potencial", "Recusa"],
@@ -270,7 +268,6 @@
             "Improcedentes": "IMPROCEDENTES"
         };
 
-        // --- GERENCIAMENTO DE DATA ---
         function getDataKey() { return document.getElementById('dataSelecionada').value; }
 
         function formatarDataBrasileira(dataStringYMD) {
@@ -285,18 +282,13 @@
             document.getElementById('dataSelecionada').value = dataLocal.toISOString().split('T')[0];
         }
 
-        // --- LÓGICA DE CICLO SEMANAL (SEXTA A QUINTA) ---
         function getDatasDoCiclo(dataReferenciaString) {
-            // Cria data ajustando fuso para evitar problemas de dia anterior
             const dataRef = new Date(dataReferenciaString + 'T12:00:00');
-            const diaSemana = dataRef.getDay(); // 0=Dom, ..., 4=Qui, 5=Sex, 6=Sáb
-            
-            // Lógica: Se for Sex(5) ou Sab(6), estamos no início do ciclo.
-            // Se for Dom(0) a Qui(4), voltamos para a última sexta.
+            const diaSemana = dataRef.getDay();
             let diasParaVoltar = 0;
-            if (diaSemana === 5) diasParaVoltar = 0; // Hoje é sexta
-            else if (diaSemana === 6) diasParaVoltar = 1; // Hoje é sábado
-            else diasParaVoltar = diaSemana + 2; // Dom(0)+2=2, Seg(1)+2=3... Qui(4)+2=6
+            if (diaSemana === 5) diasParaVoltar = 0;
+            else if (diaSemana === 6) diasParaVoltar = 1;
+            else diasParaVoltar = diaSemana + 2;
             
             const dataInicio = new Date(dataRef);
             dataInicio.setDate(dataRef.getDate() - diasParaVoltar);
@@ -310,10 +302,8 @@
             return datas;
         }
 
-        // --- DADOS E STORAGE ---
         function carregarDadosData(dataKey) {
             let contadores = JSON.parse(localStorage.getItem(dataKey)) || {};
-            // Garante estrutura
             Object.keys(CATEGORIAS).forEach(cat => {
                 CATEGORIAS[cat].forEach(sub => {
                     if (!(sub in contadores)) contadores[sub] = 0;
@@ -338,7 +328,6 @@
             document.getElementById('metaInput').value = localStorage.getItem('meta') || '22';
         }
 
-        // --- CONTADORES DA INTERFACE ---
         function incrementar(subcategoria) {
             const contadores = carregarDadosData(getDataKey());
             contadores[subcategoria]++;
@@ -419,12 +408,12 @@
             });
         }
 
-        // --- RELATÓRIOS ---
         function mostrarRelatorio(texto) {
             document.getElementById('relatorioTexto').textContent = texto;
             document.getElementById('relatorio').scrollIntoView({behavior: 'smooth'});
         }
 
+        // --- RELATÓRIO PARCIAL ---
         function gerarRelatorioParcial() {
             const c = carregarDadosData(getDataKey());
             let total = 0;
@@ -432,11 +421,21 @@
             
             let t = `PARCIAL DIÁRIA\n\nIMÓVEIS VISITADOS: ${total}\n\n`;
             t += `AUTODECLARADO: ${c["Auto"]||0}\n\nCONEXÃO CALÇADA: ${c["Calçada"]||0}\n\nINTRADOMICILIAR: ${c["Intradomiciliar"]||0}\n`;
-            if ((c["Ativações"]||0) > 0) t += `\nSUSPENSO (ATIVAÇÕES): ${c["Ativações"]}`;
-            if ((c["Improcedentes"]||0) > 0) t += `\nSUSPENSO (IMPROCEDENTES): ${c["Improcedentes"]}`;
+            
+            // Lógica ajustada: Verifica se o TOTAL de suspensos > 0
+            const suspAtiv = c["Ativações"]||0;
+            const suspImp = c["Improcedentes"]||0;
+            
+            if ((suspAtiv + suspImp) > 0) {
+                // Se o total é maior que 0, mostra AMBOS, mesmo se um for 0
+                t += `\nSUSPENSO (ATIVAÇÕES): ${suspAtiv}`;
+                t += `\nSUSPENSO (IMPROCEDENTES): ${suspImp}`;
+            }
+            
             mostrarRelatorio(t);
         }
 
+        // --- RELATÓRIO FINAL ---
         function gerarRelatorio() {
             const c = carregarDadosData(getDataKey());
             const ag = document.getElementById('agenteInput').value;
@@ -451,12 +450,16 @@
             Object.keys(CATEGORIAS).forEach(cat => {
                 let totalCat = 0;
                 CATEGORIAS[cat].forEach(s => totalCat += (c[s]||0));
+                
+                // Se a categoria inteira for zero, oculta o bloco (Aplicável para Suspenso)
                 if (cat === "Suspenso" && totalCat === 0) return;
                 
                 t += `${NOMES_RELATORIO[cat]}: ${totalCat}\n`;
+                
                 CATEGORIAS[cat].forEach(sub => {
                     const v = c[sub]||0;
-                    if (cat === "Suspenso" && v === 0) return;
+                    // Lógica ajustada: Removemos o bloqueio de zero para itens individuais
+                    // Agora, se a categoria "Suspenso" aparece, seus itens aparecem mesmo zerados
                     t += `-${NOMES_SUBCATEGORIAS_RELATORIO[sub]}: ${v}\n`;
                 });
                 t += `\n`;
@@ -464,7 +467,6 @@
             mostrarRelatorio(t);
         }
 
-        // --- RESUMO SEMANAL (LÓGICA NOVA) ---
         function gerarResumoSemanal() {
             const dataAtual = getDataKey();
             const datasCiclo = getDatasDoCiclo(dataAtual);
@@ -475,16 +477,11 @@
             let totalGeralVisitas = 0;
             let diasTrabalhados = 0;
 
-            // Itera pelos 7 dias do ciclo
             datasCiclo.forEach(data => {
-                // Tenta pegar do storage, se não existir retorna obj vazio (não cria entrada nova para não sujar storage)
                 const dados = JSON.parse(localStorage.getItem(data));
-                
                 if (dados) {
-                    // Se tem dados salvos neste dia
                     let visitasDia = 0;
                     Object.values(CATEGORIAS).forEach(l => l.forEach(s => visitasDia += (dados[s] || 0)));
-                    
                     if (visitasDia > 0) {
                         diasTrabalhados++;
                         totalGeralVisitas += visitasDia;
@@ -524,13 +521,11 @@
             mostrarRelatorio(t);
         }
 
-        // --- INICIALIZAÇÃO ---
         document.addEventListener('DOMContentLoaded', () => {
             setarDataHoje();
             carregarInputs();
             atualizarInterface();
             
-            // Eventos
             const trigger = document.getElementById('triggerData');
             const inputDate = document.getElementById('dataSelecionada');
             trigger.addEventListener('click', () => {
@@ -538,7 +533,6 @@
             });
             inputDate.addEventListener('change', atualizarInterface);
 
-            // Inputs salvamento automático
             ['agenteInput', 'liderInput', 'metaInput'].forEach(id => {
                 document.getElementById(id).addEventListener('input', salvarInputs);
             });
