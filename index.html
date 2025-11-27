@@ -24,7 +24,6 @@
             width: 100%;
         }
 
-        /* --- CABEÇALHO --- */
         .cabecalho {
             display: flex;
             justify-content: space-between;
@@ -32,11 +31,7 @@
             margin-bottom: 20px;
         }
 
-        h1 {
-            font-size: 24px;
-            margin: 0;
-            color: #333;
-        }
+        h1 { font-size: 24px; margin: 0; color: #333; }
 
         .icone-calendario {
             font-size: 24px;
@@ -45,7 +40,14 @@
             user-select: none;
         }
 
-        .icone-calendario:active { transform: scale(0.9); }
+        /* Indicador visual de histórico (apenas visual) */
+        .aviso-historico {
+            font-size: 12px;
+            color: #e67e22; /* Laranja para alerta suave */
+            font-weight: bold;
+            display: none;
+            margin-top: 5px;
+        }
 
         #dataSelecionada {
             position: absolute;
@@ -54,25 +56,10 @@
             height: 0;
         }
 
-        /* --- ESTILOS GERAIS --- */
-        h2 {
-            font-size: 20px;
-            margin: 15px 0 10px;
-            color: #333;
-        }
+        h2 { font-size: 20px; margin: 15px 0 10px; color: #333; }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 10px 0;
-        }
-
-        th, td {
-            padding: 8px;
-            text-align: center;
-            font-size: 16px;
-        }
-
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { padding: 8px; text-align: center; font-size: 16px; }
         th { background-color: #e9ecef; }
         td { border-bottom: 1px solid #dee2e6; }
 
@@ -98,7 +85,6 @@
 
         .categoria-mae { margin: 15px 0; }
 
-        /* Cores dos Botões */
         #gerarRelatorio { background-color: #28a745; }
         #gerarRelatorioParcial { background-color: #17a2b8; }
         #gerarResumoSemanal { background-color: #6610f2; }
@@ -112,10 +98,7 @@
             gap: 10px;
             margin: 15px 0;
         }
-        
-        #gerarResumoSemanal, #resetarContagem {
-            grid-column: span 2;
-        }
+        #gerarResumoSemanal, #resetarContagem { grid-column: span 2; }
 
         .relatorio {
             margin-top: 15px;
@@ -128,21 +111,10 @@
             overflow-y: auto;
         }
 
-        .acoes-relatorio {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 10px;
-        }
+        .acoes-relatorio { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
         .acoes-relatorio button { flex: 1; }
 
-        pre {
-            margin: 0;
-            font-size: 13px;
-            font-family: monospace;
-            white-space: pre-wrap;
-            color: #333;
-        }
+        pre { margin: 0; font-size: 13px; font-family: monospace; white-space: pre-wrap; color: #333; }
 
         .inputs {
             display: flex;
@@ -154,17 +126,8 @@
             border-radius: 5px;
         }
 
-        .linha-inputs {
-            display: flex;
-            gap: 10px;
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            flex: 1;
-        }
+        .linha-inputs { display: flex; gap: 10px; }
+        .input-group { display: flex; flex-direction: column; align-items: flex-start; flex: 1; }
 
         label { font-size: 12px; color: #555; margin-bottom: 2px; font-weight: bold; }
 
@@ -177,28 +140,19 @@
             box-sizing: border-box; 
         }
 
-        .contagem-clicavel {
-            cursor: pointer;
-            color: #333;
-            padding: 4px;
-            border-radius: 3px;
-        }
+        .contagem-clicavel { cursor: pointer; color: #333; padding: 4px; border-radius: 3px; }
         .contagem-clicavel:hover { background-color: #e9ecef; }
         
-        .contagem-input {
-            width: 50px;
-            padding: 2px;
-            font-size: 14px;
-            text-align: center;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-        }
+        .contagem-input { width: 50px; padding: 2px; font-size: 14px; text-align: center; border: 1px solid #ddd; border-radius: 3px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="cabecalho">
-            <h1>Relatório Diário</h1>
+            <div>
+                <h1>Relatório Diário</h1>
+                <div id="avisoHistorico" class="aviso-historico">EDITANDO HISTÓRICO</div>
+            </div>
             <span class="icone-calendario" id="triggerData" title="Selecionar Data">📅</span>
             <input type="date" id="dataSelecionada">
         </div>
@@ -226,7 +180,7 @@
             <button id="gerarRelatorioParcial">Parcial</button>
             <button id="gerarRelatorio">Diário Final</button>
             <button id="gerarResumoSemanal">📊 Resumo Semanal (Sex-Qui)</button>
-            <button id="resetarContagem">Resetar Dia Atual</button>
+            <button id="resetarContagem">Resetar Dia Selecionado</button>
         </div>
 
         <div id="relatorio" class="relatorio">
@@ -275,11 +229,15 @@
             return `${dia}/${mes}/${ano.slice(-2)}`;
         }
 
-        function setarDataHoje() {
+        function getHojeYMD() {
             const hoje = new Date();
             const offset = hoje.getTimezoneOffset();
             const dataLocal = new Date(hoje.getTime() - (offset*60*1000));
-            document.getElementById('dataSelecionada').value = dataLocal.toISOString().split('T')[0];
+            return dataLocal.toISOString().split('T')[0];
+        }
+
+        function setarDataHoje() {
+            document.getElementById('dataSelecionada').value = getHojeYMD();
         }
 
         function getDatasDoCiclo(dataReferenciaString) {
@@ -373,17 +331,29 @@
                 salvarDadosDia(contadores);
                 document.getElementById('relatorioTexto').textContent = '';
                 atualizarInterface();
-                btn.textContent = 'Resetar Dia Atual';
+                btn.textContent = 'Resetar Dia Selecionado';
                 clearTimeout(resetTimeout);
             } else {
                 btn.textContent = 'Confirmar?';
-                resetTimeout = setTimeout(() => { btn.textContent = 'Resetar Dia Atual'; }, 5000);
+                resetTimeout = setTimeout(() => { btn.textContent = 'Resetar Dia Selecionado'; }, 5000);
             }
         }
 
         function atualizarInterface() {
-            const contadores = carregarDadosData(getDataKey());
+            const dataSelecionada = getDataKey();
+            const ehHoje = dataSelecionada === getHojeYMD();
+            const contadores = carregarDadosData(dataSelecionada);
             const div = document.getElementById('contadores');
+            const aviso = document.getElementById('avisoHistorico');
+            
+            // Controle visual apenas (sem bloqueio)
+            if (ehHoje) {
+                aviso.style.display = 'none';
+            } else {
+                aviso.style.display = 'block';
+                aviso.textContent = `EDITANDO HISTÓRICO: ${formatarDataBrasileira(dataSelecionada)}`;
+            }
+
             div.innerHTML = '';
             
             Object.keys(CATEGORIAS).forEach(mae => {
@@ -396,6 +366,7 @@
                 CATEGORIAS[mae].forEach(sub => {
                     const row = document.createElement('tr');
                     const val = contadores[sub] || 0;
+                    
                     row.innerHTML = `
                         <td><button class="remover" onclick="decrementar('${sub}')">-</button></td>
                         <td><div class="contagem-clicavel" onclick="editarContador('${sub}', this, ${val})">${val}</div></td>
@@ -413,7 +384,6 @@
             document.getElementById('relatorio').scrollIntoView({behavior: 'smooth'});
         }
 
-        // --- RELATÓRIO PARCIAL ---
         function gerarRelatorioParcial() {
             const c = carregarDadosData(getDataKey());
             let total = 0;
@@ -422,12 +392,10 @@
             let t = `PARCIAL DIÁRIA\n\nIMÓVEIS VISITADOS: ${total}\n\n`;
             t += `AUTODECLARADO: ${c["Auto"]||0}\n\nCONEXÃO CALÇADA: ${c["Calçada"]||0}\n\nINTRADOMICILIAR: ${c["Intradomiciliar"]||0}\n`;
             
-            // Lógica ajustada: Verifica se o TOTAL de suspensos > 0
             const suspAtiv = c["Ativações"]||0;
             const suspImp = c["Improcedentes"]||0;
             
             if ((suspAtiv + suspImp) > 0) {
-                // Se o total é maior que 0, mostra AMBOS, mesmo se um for 0
                 t += `\nSUSPENSO (ATIVAÇÕES): ${suspAtiv}`;
                 t += `\nSUSPENSO (IMPROCEDENTES): ${suspImp}`;
             }
@@ -435,7 +403,6 @@
             mostrarRelatorio(t);
         }
 
-        // --- RELATÓRIO FINAL ---
         function gerarRelatorio() {
             const c = carregarDadosData(getDataKey());
             const ag = document.getElementById('agenteInput').value;
@@ -451,15 +418,12 @@
                 let totalCat = 0;
                 CATEGORIAS[cat].forEach(s => totalCat += (c[s]||0));
                 
-                // Se a categoria inteira for zero, oculta o bloco (Aplicável para Suspenso)
                 if (cat === "Suspenso" && totalCat === 0) return;
                 
                 t += `${NOMES_RELATORIO[cat]}: ${totalCat}\n`;
                 
                 CATEGORIAS[cat].forEach(sub => {
                     const v = c[sub]||0;
-                    // Lógica ajustada: Removemos o bloqueio de zero para itens individuais
-                    // Agora, se a categoria "Suspenso" aparece, seus itens aparecem mesmo zerados
                     t += `-${NOMES_SUBCATEGORIAS_RELATORIO[sub]}: ${v}\n`;
                 });
                 t += `\n`;
@@ -528,6 +492,15 @@
             
             const trigger = document.getElementById('triggerData');
             const inputDate = document.getElementById('dataSelecionada');
+            
+            // Lógica de "Acordar" no dia certo
+            document.addEventListener("visibilitychange", () => {
+                if (document.visibilityState === 'visible') {
+                   setarDataHoje();
+                   atualizarInterface();
+                }
+            });
+
             trigger.addEventListener('click', () => {
                 inputDate.showPicker ? inputDate.showPicker() : inputDate.click();
             });
