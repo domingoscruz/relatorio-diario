@@ -24,38 +24,7 @@
             width: 100%;
         }
 
-        .cabecalho {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        h1 { font-size: 24px; margin: 0; color: #333; }
-
-        .icone-calendario {
-            font-size: 24px;
-            cursor: pointer;
-            transition: transform 0.2s;
-            user-select: none;
-        }
-
-        /* Indicador visual de histórico (apenas visual) */
-        .aviso-historico {
-            font-size: 12px;
-            color: #e67e22; /* Laranja para alerta suave */
-            font-weight: bold;
-            display: none;
-            margin-top: 5px;
-        }
-
-        #dataSelecionada {
-            position: absolute;
-            visibility: hidden;
-            width: 0;
-            height: 0;
-        }
-
+        h1 { font-size: 24px; margin: 0 0 10px; color: #333; }
         h2 { font-size: 20px; margin: 15px 0 10px; color: #333; }
 
         table { width: 100%; border-collapse: collapse; margin: 10px 0; }
@@ -111,10 +80,20 @@
             overflow-y: auto;
         }
 
-        .acoes-relatorio { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
-        .acoes-relatorio button { flex: 1; }
+        .acoes-relatorio {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+        }
 
-        pre { margin: 0; font-size: 13px; font-family: monospace; white-space: pre-wrap; color: #333; }
+        pre {
+            margin: 0;
+            font-size: 13px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            color: #333;
+        }
 
         .inputs {
             display: flex;
@@ -126,403 +105,209 @@
             border-radius: 5px;
         }
 
-        .linha-inputs { display: flex; gap: 10px; }
-        .input-group { display: flex; flex-direction: column; align-items: flex-start; flex: 1; }
+        label { font-size: 12px; color: #555; font-weight: bold; }
 
-        label { font-size: 12px; color: #555; margin-bottom: 2px; font-weight: bold; }
-
-        input[type="text"], input[type="number"] {
+        input[type="text"] {
             padding: 8px;
             font-size: 14px;
             border: 1px solid #ddd;
             border-radius: 5px;
             width: 100%;
-            box-sizing: border-box; 
         }
 
-        .contagem-clicavel { cursor: pointer; color: #333; padding: 4px; border-radius: 3px; }
-        .contagem-clicavel:hover { background-color: #e9ecef; }
-        
-        .contagem-input { width: 50px; padding: 2px; font-size: 14px; text-align: center; border: 1px solid #ddd; border-radius: 3px; }
+        .contagem-clicavel { cursor: pointer; }
+        .contagem-input {
+            width: 50px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="cabecalho">
-            <div>
-                <h1>Relatório Diário</h1>
-                <div id="avisoHistorico" class="aviso-historico">EDITANDO HISTÓRICO</div>
-            </div>
-            <span class="icone-calendario" id="triggerData" title="Selecionar Data">📅</span>
-            <input type="date" id="dataSelecionada">
-        </div>
-        
-        <div class="inputs">
-            <div class="linha-inputs">
-                <div class="input-group">
-                    <label for="agenteInput">Agente:</label>
-                    <input type="text" id="agenteInput" value="Domingos">
-                </div>
-                <div class="input-group" style="max-width: 80px;">
-                    <label for="metaInput" title="Meta Semanal">Meta:</label>
-                    <input type="number" id="metaInput" value="22">
-                </div>
-            </div>
-            <div class="input-group">
-                <label for="liderInput">Líder:</label>
-                <input type="text" id="liderInput" value="Diego Muniz">
-            </div>
-        </div>
+<div class="container">
+    <h1>Relatório Diário</h1>
 
-        <div id="contadores"></div>
+    <div class="inputs">
+        <label for="agenteInput">Agente:</label>
+        <input type="text" id="agenteInput" value="Domingos">
 
-        <div class="botoes">
-            <button id="gerarRelatorioParcial">Parcial</button>
-            <button id="gerarRelatorio">Diário Final</button>
-            <button id="gerarResumoSemanal">📊 Resumo Semanal (Sex-Qui)</button>
-            <button id="resetarContagem">Resetar Dia Selecionado</button>
-        </div>
-
-        <div id="relatorio" class="relatorio">
-            <pre id="relatorioTexto"></pre>
-            <div class="acoes-relatorio">
-                <button id="copiarRelatorio">Copiar</button>
-                <button id="btnWhatsapp">WhatsApp</button>
-            </div>
-        </div>
+        <label for="liderInput">Líder:</label>
+        <input type="text" id="liderInput" value="Diego Muniz">
     </div>
 
-    <script>
-        const CATEGORIAS = {
-            "Procedentes": ["Adesão", "Não aderiu", "Recusou assinar auto", "065", "Calçada", "Intradomiciliar", "Potencial", "Auto"],
-            "Improcedentes": ["FDA", "Cadastro", "Fechado Potencial", "Recusa"],
-            "Suspenso": ["Ativações", "Improcedentes"]
-        };
+    <div id="contadores"></div>
 
-        const NOMES_RELATORIO = {
-            "Procedentes": "PROCEDENTES",
-            "Improcedentes": "IMPROCEDENTE",
-            "Suspenso": "SUSPENSO"
-        };
+    <div class="botoes">
+        <button id="gerarRelatorioParcial">Parcial</button>
+        <button id="gerarRelatorio">Diário Final</button>
+        <button id="gerarResumoSemanal">📊 Resumo Semanal (Sex-Qui)</button>
+        <button id="resetarContagem">Resetar Dia</button>
+    </div>
 
-        const NOMES_SUBCATEGORIAS_RELATORIO = {
-            "Adesão": "ADESÃO",
-            "Não aderiu": "CLIENTE CONSCIENTIZADO MAS NÃO ADERIU",
-            "Recusou assinar auto": "CLIENTE CONSCIENTIZADO RECUSOU ASSINAR AUTODECLARADO",
-            "065": "SOLICITAÇÃO DA 65",
-            "Calçada": "CONEXÃO CALÇADA",
-            "Intradomiciliar": "INTRADOMICILIAR",
-            "Potencial": "REDE POTENCIAL",
-            "Auto": "AUTODECLARADO",
-            "FDA": "FECHADO/DESOCUPADO/ABANDONADO",
-            "Cadastro": "CADASTRO",
-            "Fechado Potencial": "IMÓVEL FECHADO REDE POTENCIAL",
-            "Recusa": "RECUSA",
-            "Ativações": "ATIVAÇÕES",
-            "Improcedentes": "IMPROCEDENTES"
-        };
+    <div id="relatorio" class="relatorio">
+        <pre id="relatorioTexto"></pre>
+        <div class="acoes-relatorio">
+            <button id="copiarRelatorio">Copiar</button>
+            <button id="btnWhatsapp">WhatsApp</button>
+        </div>
+    </div>
+</div>
 
-        function getDataKey() { return document.getElementById('dataSelecionada').value; }
+<script>
+const CATEGORIAS = {
+    "Procedentes": ["Adesão", "Não aderiu", "Recusou assinar auto", "065", "Calçada", "Intradomiciliar", "Potencial", "Auto"],
+    "Improcedentes": ["FDA", "Cadastro", "Fechado Potencial", "Recusa"],
+    "Suspenso": ["Ativações", "Improcedentes"]
+};
 
-        function formatarDataBrasileira(dataStringYMD) {
-            const [ano, mes, dia] = dataStringYMD.split('-');
-            return `${dia}/${mes}/${ano.slice(-2)}`;
-        }
+const NOMES_RELATORIO = {
+    "Procedentes": "PROCEDENTES",
+    "Improcedentes": "IMPROCEDENTE",
+    "Suspenso": "SUSPENSO"
+};
 
-        function getHojeYMD() {
-            const hoje = new Date();
-            const offset = hoje.getTimezoneOffset();
-            const dataLocal = new Date(hoje.getTime() - (offset*60*1000));
-            return dataLocal.toISOString().split('T')[0];
-        }
+const NOMES_SUBCATEGORIAS_RELATORIO = {
+    "Adesão": "ADESÃO",
+    "Não aderiu": "CLIENTE CONSCIENTIZADO MAS NÃO ADERIU",
+    "Recusou assinar auto": "CLIENTE CONSCIENTIZADO RECUSOU ASSINAR AUTODECLARADO",
+    "065": "SOLICITAÇÃO DA 65",
+    "Calçada": "CONEXÃO CALÇADA",
+    "Intradomiciliar": "INTRADOMICILIAR",
+    "Potencial": "REDE POTENCIAL",
+    "Auto": "AUTODECLARADO",
+    "FDA": "FECHADO/DESOCUPADO/ABANDONADO",
+    "Cadastro": "CADASTRO",
+    "Fechado Potencial": "IMÓVEL FECHADO REDE POTENCIAL",
+    "Recusa": "RECUSA",
+    "Ativações": "ATIVAÇÕES",
+    "Improcedentes": "IMPROCEDENTES"
+};
 
-        function setarDataHoje() {
-            document.getElementById('dataSelecionada').value = getHojeYMD();
-        }
+function getHojeYMD() {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().split("T")[0];
+}
 
-        function getDatasDoCiclo(dataReferenciaString) {
-            const dataRef = new Date(dataReferenciaString + 'T12:00:00');
-            const diaSemana = dataRef.getDay();
-            let diasParaVoltar = 0;
-            if (diaSemana === 5) diasParaVoltar = 0;
-            else if (diaSemana === 6) diasParaVoltar = 1;
-            else diasParaVoltar = diaSemana + 2;
-            
-            const dataInicio = new Date(dataRef);
-            dataInicio.setDate(dataRef.getDate() - diasParaVoltar);
-            
-            const datas = [];
-            for (let i = 0; i < 7; i++) {
-                const d = new Date(dataInicio);
-                d.setDate(dataInicio.getDate() + i);
-                datas.push(d.toISOString().split('T')[0]);
-            }
-            return datas;
-        }
+function getDataKey() {
+    return getHojeYMD();
+}
 
-        function carregarDadosData(dataKey) {
-            let contadores = JSON.parse(localStorage.getItem(dataKey)) || {};
-            Object.keys(CATEGORIAS).forEach(cat => {
-                CATEGORIAS[cat].forEach(sub => {
-                    if (!(sub in contadores)) contadores[sub] = 0;
-                });
-            });
-            return contadores;
-        }
+function formatarDataBrasileira(data) {
+    const [a,m,d] = data.split("-");
+    return `${d}/${m}/${a.slice(-2)}`;
+}
 
-        function salvarDadosDia(contadores) {
-            localStorage.setItem(getDataKey(), JSON.stringify(contadores));
-        }
+function carregarDados() {
+    let c = JSON.parse(localStorage.getItem(getDataKey())) || {};
+    Object.values(CATEGORIAS).forEach(l => l.forEach(s => c[s] ??= 0));
+    return c;
+}
 
-        function salvarInputs() {
-            localStorage.setItem('agente', document.getElementById('agenteInput').value);
-            localStorage.setItem('lider', document.getElementById('liderInput').value);
-            localStorage.setItem('meta', document.getElementById('metaInput').value);
-        }
+function salvarDados(c) {
+    localStorage.setItem(getDataKey(), JSON.stringify(c));
+}
 
-        function carregarInputs() {
-            document.getElementById('agenteInput').value = localStorage.getItem('agente') || 'Domingos';
-            document.getElementById('liderInput').value = localStorage.getItem('lider') || 'Diego Muniz';
-            document.getElementById('metaInput').value = localStorage.getItem('meta') || '22';
-        }
+function atualizarInterface() {
+    const c = carregarDados();
+    const div = document.getElementById("contadores");
+    div.innerHTML = "";
 
-        function incrementar(subcategoria) {
-            const contadores = carregarDadosData(getDataKey());
-            contadores[subcategoria]++;
-            salvarDadosDia(contadores);
-            atualizarInterface();
-        }
+    Object.keys(CATEGORIAS).forEach(cat => {
+        const bloco = document.createElement("div");
+        bloco.className = "categoria-mae";
+        bloco.innerHTML = `<h2>${cat}</h2>`;
+        const t = document.createElement("table");
+        t.innerHTML = "<tr><th>Del</th><th>Qtd</th><th>Add</th></tr>";
 
-        function decrementar(subcategoria) {
-            const contadores = carregarDadosData(getDataKey());
-            if (contadores[subcategoria] > 0) {
-                contadores[subcategoria]--;
-                salvarDadosDia(contadores);
-                atualizarInterface();
-            }
-        }
-
-        function editarContador(subcategoria, elemento, valorAtual) {
-            const input = document.createElement('input');
-            input.type = 'number';
-            input.className = 'contagem-input';
-            input.value = valorAtual;
-            const salvar = () => {
-                let novo = parseInt(input.value, 10);
-                if (isNaN(novo) || novo < 0) novo = valorAtual;
-                const contadores = carregarDadosData(getDataKey());
-                contadores[subcategoria] = novo;
-                salvarDadosDia(contadores);
-                atualizarInterface();
-            };
-            input.addEventListener('blur', salvar);
-            input.addEventListener('keydown', (e) => { if (e.key === 'Enter') salvar(); });
-            elemento.innerHTML = '';
-            elemento.appendChild(input);
-            input.focus();
-        }
-
-        let resetTimeout = null;
-        function resetarContagem() {
-            const btn = document.getElementById('resetarContagem');
-            if (btn.textContent.includes('Confirmar?')) {
-                const contadores = carregarDadosData(getDataKey());
-                Object.keys(contadores).forEach(k => contadores[k] = 0);
-                salvarDadosDia(contadores);
-                document.getElementById('relatorioTexto').textContent = '';
-                atualizarInterface();
-                btn.textContent = 'Resetar Dia Selecionado';
-                clearTimeout(resetTimeout);
-            } else {
-                btn.textContent = 'Confirmar?';
-                resetTimeout = setTimeout(() => { btn.textContent = 'Resetar Dia Selecionado'; }, 5000);
-            }
-        }
-
-        function atualizarInterface() {
-            const dataSelecionada = getDataKey();
-            const ehHoje = dataSelecionada === getHojeYMD();
-            const contadores = carregarDadosData(dataSelecionada);
-            const div = document.getElementById('contadores');
-            const aviso = document.getElementById('avisoHistorico');
-            
-            // Controle visual apenas (sem bloqueio)
-            if (ehHoje) {
-                aviso.style.display = 'none';
-            } else {
-                aviso.style.display = 'block';
-                aviso.textContent = `EDITANDO HISTÓRICO: ${formatarDataBrasileira(dataSelecionada)}`;
-            }
-
-            div.innerHTML = '';
-            
-            Object.keys(CATEGORIAS).forEach(mae => {
-                const divMae = document.createElement('div');
-                divMae.className = 'categoria-mae';
-                divMae.innerHTML = `<h2>${mae}</h2>`;
-                const tbl = document.createElement('table');
-                tbl.innerHTML = `<tr><th>Del</th><th>Qtd</th><th>Add</th></tr>`;
-                
-                CATEGORIAS[mae].forEach(sub => {
-                    const row = document.createElement('tr');
-                    const val = contadores[sub] || 0;
-                    
-                    row.innerHTML = `
-                        <td><button class="remover" onclick="decrementar('${sub}')">-</button></td>
-                        <td><div class="contagem-clicavel" onclick="editarContador('${sub}', this, ${val})">${val}</div></td>
-                        <td><button onclick="incrementar('${sub}')">${sub}</button></td>
-                    `;
-                    tbl.appendChild(row);
-                });
-                divMae.appendChild(tbl);
-                div.appendChild(divMae);
-            });
-        }
-
-        function mostrarRelatorio(texto) {
-            document.getElementById('relatorioTexto').textContent = texto;
-            document.getElementById('relatorio').scrollIntoView({behavior: 'smooth'});
-        }
-
-        function gerarRelatorioParcial() {
-            const c = carregarDadosData(getDataKey());
-            let total = 0;
-            Object.values(CATEGORIAS).forEach(l => l.forEach(s => total += (c[s] || 0)));
-            
-            let t = `PARCIAL DIÁRIA\n\nIMÓVEIS VISITADOS: ${total}\n\n`;
-            t += `AUTODECLARADO: ${c["Auto"]||0}\n\nCONEXÃO CALÇADA: ${c["Calçada"]||0}\n\nINTRADOMICILIAR: ${c["Intradomiciliar"]||0}\n`;
-            
-            const suspAtiv = c["Ativações"]||0;
-            const suspImp = c["Improcedentes"]||0;
-            
-            if ((suspAtiv + suspImp) > 0) {
-                t += `\nSUSPENSO (ATIVAÇÕES): ${suspAtiv}`;
-                t += `\nSUSPENSO (IMPROCEDENTES): ${suspImp}`;
-            }
-            
-            mostrarRelatorio(t);
-        }
-
-        function gerarRelatorio() {
-            const c = carregarDadosData(getDataKey());
-            const ag = document.getElementById('agenteInput').value;
-            const ld = document.getElementById('liderInput').value;
-            const dt = formatarDataBrasileira(getDataKey());
-            
-            let t = `AGENTE: ${ag}\nDATA: ${dt}\nLÍDER: ${ld}\n\n`;
-            let total = 0;
-            Object.values(CATEGORIAS).forEach(l => l.forEach(s => total += (c[s] || 0)));
-            t += `IMÓVEIS VISITADOS: ${total}\n`;
-            
-            Object.keys(CATEGORIAS).forEach(cat => {
-                let totalCat = 0;
-                CATEGORIAS[cat].forEach(s => totalCat += (c[s]||0));
-                
-                if (cat === "Suspenso" && totalCat === 0) return;
-                
-                t += `${NOMES_RELATORIO[cat]}: ${totalCat}\n`;
-                
-                CATEGORIAS[cat].forEach(sub => {
-                    const v = c[sub]||0;
-                    t += `-${NOMES_SUBCATEGORIAS_RELATORIO[sub]}: ${v}\n`;
-                });
-                t += `\n`;
-            });
-            mostrarRelatorio(t);
-        }
-
-        function gerarResumoSemanal() {
-            const dataAtual = getDataKey();
-            const datasCiclo = getDatasDoCiclo(dataAtual);
-            const meta = parseInt(document.getElementById('metaInput').value) || 22;
-            
-            let totalAuto = 0;
-            let totalAtivacoes = 0;
-            let totalGeralVisitas = 0;
-            let diasTrabalhados = 0;
-
-            datasCiclo.forEach(data => {
-                const dados = JSON.parse(localStorage.getItem(data));
-                if (dados) {
-                    let visitasDia = 0;
-                    Object.values(CATEGORIAS).forEach(l => l.forEach(s => visitasDia += (dados[s] || 0)));
-                    if (visitasDia > 0) {
-                        diasTrabalhados++;
-                        totalGeralVisitas += visitasDia;
-                        totalAuto += (dados["Auto"] || 0);
-                        totalAtivacoes += (dados["Ativações"] || 0);
-                    }
-                }
-            });
-
-            const realizados = totalAuto + totalAtivacoes;
-            const falta = meta - realizados;
-            const pct = Math.min(100, Math.round((realizados / meta) * 100));
-            const barra = "█".repeat(Math.floor(pct/10)) + "░".repeat(10 - Math.floor(pct/10));
-
-            const inicioFmt = formatarDataBrasileira(datasCiclo[0]).slice(0,5);
-            const fimFmt = formatarDataBrasileira(datasCiclo[6]).slice(0,5);
-
-            let t = `📊 RESUMO SEMANAL\n`;
-            t += `Ciclo: ${inicioFmt} a ${fimFmt} (Sex-Qui)\n`;
-            t += `--------------------------\n`;
-            t += `META: ${meta}  |  REALIZADO: ${realizados}\n`;
-            t += `[${barra}] ${pct}%\n`;
-            
-            if (realizados >= meta) {
-                t += `🎉 META BATIDA! (+${realizados - meta})\n`;
-            } else {
-                t += `⚠️ Falta: ${falta}\n`;
-            }
-            
-            t += `--------------------------\n`;
-            t += `Detalhes:\n`;
-            t += `- Autodeclarados: ${totalAuto}\n`;
-            t += `- Ativações (Susp.): ${totalAtivacoes}\n`;
-            t += `\nTotal Visitas no Ciclo: ${totalGeralVisitas}\n`;
-            t += `Dias com registro: ${diasTrabalhados}/7`;
-
-            mostrarRelatorio(t);
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            setarDataHoje();
-            carregarInputs();
-            atualizarInterface();
-            
-            const trigger = document.getElementById('triggerData');
-            const inputDate = document.getElementById('dataSelecionada');
-            
-            // Lógica de "Acordar" no dia certo
-            document.addEventListener("visibilitychange", () => {
-                if (document.visibilityState === 'visible') {
-                   setarDataHoje();
-                   atualizarInterface();
-                }
-            });
-
-            trigger.addEventListener('click', () => {
-                inputDate.showPicker ? inputDate.showPicker() : inputDate.click();
-            });
-            inputDate.addEventListener('change', atualizarInterface);
-
-            ['agenteInput', 'liderInput', 'metaInput'].forEach(id => {
-                document.getElementById(id).addEventListener('input', salvarInputs);
-            });
-
-            document.getElementById('gerarRelatorio').addEventListener('click', gerarRelatorio);
-            document.getElementById('gerarRelatorioParcial').addEventListener('click', gerarRelatorioParcial);
-            document.getElementById('gerarResumoSemanal').addEventListener('click', gerarResumoSemanal);
-            document.getElementById('resetarContagem').addEventListener('click', resetarContagem);
-            document.getElementById('copiarRelatorio').addEventListener('click', () => {
-                const txt = document.getElementById('relatorioTexto').textContent;
-                if(txt) navigator.clipboard.writeText(txt).then(() => alert("Copiado!"));
-            });
-            document.getElementById('btnWhatsapp').addEventListener('click', () => {
-                const txt = document.getElementById('relatorioTexto').textContent;
-                if(txt) window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank');
-            });
+        CATEGORIAS[cat].forEach(sub => {
+            const r = document.createElement("tr");
+            r.innerHTML = `
+                <td><button class="remover">-</button></td>
+                <td class="contagem-clicavel">${c[sub]}</td>
+                <td><button>${sub}</button></td>
+            `;
+            r.children[0].onclick = () => { if (c[sub] > 0) c[sub]--; salvarDados(c); atualizarInterface(); };
+            r.children[2].onclick = () => { c[sub]++; salvarDados(c); atualizarInterface(); };
+            t.appendChild(r);
         });
-    </script>
+
+        bloco.appendChild(t);
+        div.appendChild(bloco);
+    });
+}
+
+/* === RELATÓRIOS (INALTERADOS) === */
+
+function gerarRelatorioParcial() {
+    const c = carregarDados();
+    let total = 0;
+    Object.values(CATEGORIAS).forEach(l => l.forEach(s => total += (c[s] || 0)));
+
+    let t = `PARCIAL DIÁRIA\n\nIMÓVEIS VISITADOS: ${total}\n\n`;
+    t += `AUTODECLARADO: ${c["Auto"]||0}\n\nCONEXÃO CALÇADA: ${c["Calçada"]||0}\n\nINTRADOMICILIAR: ${c["Intradomiciliar"]||0}\n`;
+
+    const suspAtiv = c["Ativações"]||0;
+    const suspImp = c["Improcedentes"]||0;
+
+    if ((suspAtiv + suspImp) > 0) {
+        t += `\nSUSPENSO (ATIVAÇÕES): ${suspAtiv}`;
+        t += `\nSUSPENSO (IMPROCEDENTES): ${suspImp}`;
+    }
+
+    document.getElementById("relatorioTexto").textContent = t;
+}
+
+function gerarRelatorio() {
+    const c = carregarDados();
+    const ag = document.getElementById("agenteInput").value;
+    const ld = document.getElementById("liderInput").value;
+    const dt = formatarDataBrasileira(getDataKey());
+
+    let t = `AGENTE: ${ag}\nDATA: ${dt}\nLÍDER: ${ld}\n\n`;
+    let total = 0;
+    Object.values(CATEGORIAS).forEach(l => l.forEach(s => total += (c[s] || 0)));
+    t += `IMÓVEIS VISITADOS: ${total}\n`;
+
+    Object.keys(CATEGORIAS).forEach(cat => {
+        let totalCat = 0;
+        CATEGORIAS[cat].forEach(s => totalCat += (c[s]||0));
+        if (cat === "Suspenso" && totalCat === 0) return;
+
+        t += `${NOMES_RELATORIO[cat]}: ${totalCat}\n`;
+        CATEGORIAS[cat].forEach(sub => {
+            t += `-${NOMES_SUBCATEGORIAS_RELATORIO[sub]}: ${c[sub]||0}\n`;
+        });
+        t += `\n`;
+    });
+
+    document.getElementById("relatorioTexto").textContent = t;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    atualizarInterface();
+
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") atualizarInterface();
+    });
+
+    document.getElementById("gerarRelatorio").onclick = gerarRelatorio;
+    document.getElementById("gerarRelatorioParcial").onclick = gerarRelatorioParcial;
+    document.getElementById("resetarContagem").onclick = () => {
+        if (confirm("Resetar o dia de hoje?")) {
+            localStorage.removeItem(getDataKey());
+            atualizarInterface();
+        }
+    };
+
+    document.getElementById("copiarRelatorio").onclick = () => {
+        navigator.clipboard.writeText(document.getElementById("relatorioTexto").textContent);
+    };
+
+    document.getElementById("btnWhatsapp").onclick = () => {
+        const t = encodeURIComponent(document.getElementById("relatorioTexto").textContent);
+        window.open(`https://wa.me/?text=${t}`, "_blank");
+    };
+});
+</script>
 </body>
 </html>
