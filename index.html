@@ -56,7 +56,6 @@
 
         #gerarRelatorio { background-color: #28a745; }
         #gerarRelatorioParcial { background-color: #17a2b8; }
-        #gerarResumoSemanal { background-color: #6610f2; }
         #resetarContagem { background-color: #dc3545; }
         #copiarRelatorio { background-color: #6c757d; margin-top: 10px; }
         #btnWhatsapp { background-color: #25D366; margin-top: 10px; }
@@ -67,7 +66,7 @@
             gap: 10px;
             margin: 15px 0;
         }
-        #gerarResumoSemanal, #resetarContagem { grid-column: span 2; }
+        #resetarContagem { grid-column: span 2; }
 
         .relatorio {
             margin-top: 15px;
@@ -116,10 +115,6 @@
         }
 
         .contagem-clicavel { cursor: pointer; }
-        .contagem-input {
-            width: 50px;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
@@ -139,7 +134,6 @@
     <div class="botoes">
         <button id="gerarRelatorioParcial">Parcial</button>
         <button id="gerarRelatorio">Diário Final</button>
-        <button id="gerarResumoSemanal">📊 Resumo Semanal (Sex-Qui)</button>
         <button id="resetarContagem">Resetar Dia</button>
     </div>
 
@@ -292,6 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("gerarRelatorio").onclick = gerarRelatorio;
     document.getElementById("gerarRelatorioParcial").onclick = gerarRelatorioParcial;
+
     document.getElementById("resetarContagem").onclick = () => {
         if (confirm("Resetar o dia de hoje?")) {
             localStorage.removeItem(getDataKey());
