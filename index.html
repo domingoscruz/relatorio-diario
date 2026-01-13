@@ -98,7 +98,7 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 5px;
             background-color: #f8f9fa;
             padding: 15px;
             border-radius: 5px;
@@ -114,7 +114,21 @@
             width: 100%;
         }
 
-        .contagem-clicavel { cursor: pointer; }
+        .contagem-clicavel { 
+            cursor: text; 
+        }
+        .contagem-clicavel:focus {
+            background-color: #ffffff;
+            outline: 1px solid #007bff;
+        }
+
+        /* Estilo para o horário da última alteração */
+        .ultima-alteracao {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -123,17 +137,18 @@
 
     <div class="inputs">
         <label for="agenteInput">Agente:</label>
-        <input type="text" id="agenteInput" value="Domingos">
+        <input type="text" id="agenteInput" placeholder="Nome do Agente">
 
         <label for="liderInput">Líder:</label>
-        <input type="text" id="liderInput" value="Diego Muniz">
+        <input type="text" id="liderInput" placeholder="Nome do Líder">
     </div>
+    <div id="statusAlteracao" class="ultima-alteracao">Nenhuma alteração registrada hoje</div>
 
     <div id="contadores"></div>
 
     <div class="botoes">
         <button id="gerarRelatorioParcial">Parcial</button>
-        <button id="gerarRelatorio">Diário Final</button>
+        <button id="gerarRelatorio">Final</button>
         <button id="resetarContagem">Resetar Dia</button>
     </div>
 
@@ -182,23 +197,53 @@ function getHojeYMD() {
     return d.toISOString().split("T")[0];
 }
 
-function getDataKey() {
-    return getHojeYMD();
-}
+function getDataKey() { return getHojeYMD(); }
 
 function formatarDataBrasileira(data) {
     const [a,m,d] = data.split("-");
     return `${d}/${m}/${a.slice(-2)}`;
 }
 
+function registrarHorario() {
+    const agora = new Date();
+    const horario = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    document.getElementById("statusAlteracao").textContent = `Última alteração às: ${horario}`;
+    localStorage.setItem("ultima_alteracao_hora", horario);
+}
+
 function carregarDados() {
     let c = JSON.parse(localStorage.getItem(getDataKey())) || {};
     Object.values(CATEGORIAS).forEach(l => l.forEach(s => c[s] ??= 0));
+    
+    // Recupera o horário salvo
+    const horaSalva = localStorage.getItem("ultima_alteracao_hora");
+    if (horaSalva) document.getElementById("statusAlteracao").textContent = `Última alteração às: ${horaSalva}`;
+    
     return c;
 }
 
-function salvarDados(c) {
+function salvarDados(c) { 
     localStorage.setItem(getDataKey(), JSON.stringify(c));
+    registrarHorario();
+}
+
+function salvarNomes() {
+    const nomes = {
+        agente: document.getElementById("agenteInput").value,
+        lider: document.getElementById("liderInput").value
+    };
+    localStorage.setItem("config_nomes", JSON.stringify(nomes));
+}
+
+function carregarNomes() {
+    const nomes = JSON.parse(localStorage.getItem("config_nomes"));
+    if (nomes) {
+        document.getElementById("agenteInput").value = nomes.agente || "";
+        document.getElementById("liderInput").value = nomes.lider || "";
+    } else {
+        document.getElementById("agenteInput").value = "Domingos";
+        document.getElementById("liderInput").value = "Diego Muniz";
+    }
 }
 
 function atualizarInterface() {
@@ -215,39 +260,49 @@ function atualizarInterface() {
 
         CATEGORIAS[cat].forEach(sub => {
             const r = document.createElement("tr");
-            r.innerHTML = `
-                <td><button class="remover">-</button></td>
-                <td class="contagem-clicavel">${c[sub]}</td>
-                <td><button>${sub}</button></td>
-            `;
-            r.children[0].onclick = () => { if (c[sub] > 0) c[sub]--; salvarDados(c); atualizarInterface(); };
-            r.children[2].onclick = () => { c[sub]++; salvarDados(c); atualizarInterface(); };
+            const tdQtd = document.createElement("td");
+            tdQtd.className = "contagem-clicavel";
+            tdQtd.contentEditable = "true";
+            tdQtd.textContent = c[sub];
+            
+            tdQtd.onblur = () => {
+                const novoValor = parseInt(tdQtd.textContent.replace(/\D/g, '')) || 0;
+                if (c[sub] !== novoValor) {
+                    c[sub] = novoValor;
+                    salvarDados(c);
+                    atualizarInterface();
+                }
+            };
+
+            tdQtd.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); tdQtd.blur(); } };
+
+            r.innerHTML = `<td><button class="remover">-</button></td>`;
+            r.appendChild(tdQtd);
+            const tdAdd = document.createElement("td");
+            tdAdd.innerHTML = `<button>${sub}</button>`;
+            
+            r.children[0].onclick = () => { if (c[sub] > 0) { c[sub]--; salvarDados(c); atualizarInterface(); } };
+            tdAdd.onclick = () => { c[sub]++; salvarDados(c); atualizarInterface(); };
+            
+            r.appendChild(tdAdd);
             t.appendChild(r);
         });
-
         bloco.appendChild(t);
         div.appendChild(bloco);
     });
 }
 
-/* === RELATÓRIOS (INALTERADOS) === */
-
 function gerarRelatorioParcial() {
     const c = carregarDados();
     let total = 0;
     Object.values(CATEGORIAS).forEach(l => l.forEach(s => total += (c[s] || 0)));
-
     let t = `PARCIAL DIÁRIA\n\nIMÓVEIS VISITADOS: ${total}\n\n`;
     t += `AUTODECLARADO: ${c["Auto"]||0}\n\nCONEXÃO CALÇADA: ${c["Calçada"]||0}\n\nINTRADOMICILIAR: ${c["Intradomiciliar"]||0}\n`;
-
     const suspAtiv = c["Ativações"]||0;
     const suspImp = c["Improcedentes"]||0;
-
     if ((suspAtiv + suspImp) > 0) {
-        t += `\nSUSPENSO (ATIVAÇÕES): ${suspAtiv}`;
-        t += `\nSUSPENSO (IMPROCEDENTES): ${suspImp}`;
+        t += `\nSUSPENSO (ATIVAÇÕES): ${suspAtiv}\nSUSPENSO (IMPROCEDENTES): ${suspImp}`;
     }
-
     document.getElementById("relatorioTexto").textContent = t;
 }
 
@@ -256,48 +311,39 @@ function gerarRelatorio() {
     const ag = document.getElementById("agenteInput").value;
     const ld = document.getElementById("liderInput").value;
     const dt = formatarDataBrasileira(getDataKey());
-
     let t = `AGENTE: ${ag}\nDATA: ${dt}\nLÍDER: ${ld}\n\n`;
     let total = 0;
     Object.values(CATEGORIAS).forEach(l => l.forEach(s => total += (c[s] || 0)));
     t += `IMÓVEIS VISITADOS: ${total}\n`;
-
     Object.keys(CATEGORIAS).forEach(cat => {
         let totalCat = 0;
         CATEGORIAS[cat].forEach(s => totalCat += (c[s]||0));
         if (cat === "Suspenso" && totalCat === 0) return;
-
         t += `${NOMES_RELATORIO[cat]}: ${totalCat}\n`;
-        CATEGORIAS[cat].forEach(sub => {
-            t += `-${NOMES_SUBCATEGORIAS_RELATORIO[sub]}: ${c[sub]||0}\n`;
-        });
+        CATEGORIAS[cat].forEach(sub => { t += `-${NOMES_SUBCATEGORIAS_RELATORIO[sub]}: ${c[sub]||0}\n`; });
         t += `\n`;
     });
-
     document.getElementById("relatorioTexto").textContent = t;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    carregarNomes();
     atualizarInterface();
-
-    document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") atualizarInterface();
-    });
-
+    document.getElementById("agenteInput").oninput = salvarNomes;
+    document.getElementById("liderInput").oninput = salvarNomes;
     document.getElementById("gerarRelatorio").onclick = gerarRelatorio;
     document.getElementById("gerarRelatorioParcial").onclick = gerarRelatorioParcial;
-
     document.getElementById("resetarContagem").onclick = () => {
-        if (confirm("Resetar o dia de hoje?")) {
-            localStorage.removeItem(getDataKey());
-            atualizarInterface();
+        if (confirm("Resetar o dia de hoje?")) { 
+            localStorage.removeItem(getDataKey()); 
+            localStorage.removeItem("ultima_alteracao_hora");
+            document.getElementById("statusAlteracao").textContent = "Nenhuma alteração registrada hoje";
+            atualizarInterface(); 
         }
     };
-
     document.getElementById("copiarRelatorio").onclick = () => {
         navigator.clipboard.writeText(document.getElementById("relatorioTexto").textContent);
     };
-
     document.getElementById("btnWhatsapp").onclick = () => {
         const t = encodeURIComponent(document.getElementById("relatorioTexto").textContent);
         window.open(`https://wa.me/?text=${t}`, "_blank");
